@@ -4,8 +4,10 @@
   "private": true,
   "dependencies": {
     "axios": "^0.18.0",
+    "deck.gl": "^6.3.0",
     "react": "^16.6.3",
     "react-dom": "^16.6.3",
+    "react-map-gl": "^4.0.2",
     "react-scripts": "2.1.1",
     "semantic-ui-css": "^2.4.1",
     "semantic-ui-react": "^0.83.0"

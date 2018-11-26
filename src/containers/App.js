@@ -1,11 +1,21 @@
 import React, { Component } from 'react';
+import DeckGL, { LineLayer, IconLayer } from 'deck.gl';
+import {StaticMap} from 'react-map-gl';
 import { Container, Grid, Button } from 'semantic-ui-react';
 import axios from 'axios';
-
 import './App.css';
 
-const DATA_URL = 'https://raw.githubusercontent.com/benjiao/airports-webmap/master/data/airports.json'
+// Viewport settings
+const viewState = {
+  longitude: 0,
+  latitude: 12,
+  zoom: 2,
+  pitch: 20,
+  bearing: 20
+};
 
+const MAPBOX_TOKEN = 'pk.eyJ1IjoiYmVuamlhbyIsImEiOiJjaWc4NXl0c3MwMGZ4dWhtNXBrc2V6YjhuIn0.8y1VtL2RJZ3wi8Aam6cG8Q';
+const DATA_URL = 'https://raw.githubusercontent.com/benjiao/airports-webmap/master/data/airports.json'
 
 class App extends Component {
 
@@ -15,18 +25,32 @@ class App extends Component {
     this.state = {
       name: null,
       airports: [],
-      arcs: []
+      arcs: [],
+      layers: []
     };
   }
 
   render() {
+    
     return (
-      <Grid celled>
+      <Grid celled className="mainGrid">
         <Grid.Row>
-          <Grid.Column width={3}>
+          <Grid.Column width={2}>
             <Button onClick={this.handleKeyPress}>Click Here</Button>
           </Grid.Column>
-          <Grid.Column width={13}>
+          <Grid.Column width={14}>
+            <DeckGL
+              layers={ this.state.layers }
+              initialViewState={viewState}
+              controller={true}>
+              {(
+                <StaticMap
+                  reuseMaps
+                  mapStyle="mapbox://styles/mapbox/dark-v9"
+                  preventStyleDiffing={true}
+                  mapboxApiAccessToken={MAPBOX_TOKEN} />
+              )}
+            </DeckGL>
           </Grid.Column>
         </Grid.Row>
       </Grid>
@@ -38,6 +62,8 @@ class App extends Component {
     console.log('HERE!')
   }
 
+  _refreshLayers() {}
+
   _initializeData() {
     var self = this;
 
@@ -46,9 +72,12 @@ class App extends Component {
         var airports = res.data.data;
         console.log(airports);
 
+        
         self.setState({
           airports: airports
         })
+
+        self._refreshLayers();
       })
   }
 
