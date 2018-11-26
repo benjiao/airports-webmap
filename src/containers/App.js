@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import DeckGL, { LineLayer, IconLayer } from 'deck.gl';
+import DeckGL, { ScatterplotLayer, IconLayer } from 'deck.gl';
 import {StaticMap} from 'react-map-gl';
 import { Container, Grid, Button } from 'semantic-ui-react';
 import axios from 'axios';
@@ -62,7 +62,26 @@ class App extends Component {
     console.log('HERE!')
   }
 
-  _refreshLayers() {}
+  _refreshLayers() {
+    var data = this.state.airports;
+    var layers = new ScatterplotLayer({
+      id: 'scatterplot-layer',
+      data,
+      pickable: true,
+      opacity: 0.8,
+      radiusScale: 6,
+      radiusMinPixels: 1,
+      radiusMaxPixels: 100,
+      getPosition: d => d.location,
+      getRadius: d => 1000 + (d.evcent * 800) ** 2,
+      getColor: d => [255, 140, 0],
+      // onHover: ({object}) => setTooltip(`${object.name}\n${object.address}`)
+    });
+
+    this.setState({
+      layers: layers
+    })
+  }
 
   _initializeData() {
     var self = this;
@@ -72,7 +91,7 @@ class App extends Component {
         var airports = res.data.data;
         console.log(airports);
 
-        
+
         self.setState({
           airports: airports
         })
