@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
-import DeckGL, { ScatterplotLayer, IconLayer } from 'deck.gl';
+import DeckGL, { ScatterplotLayer, ArcLayer } from 'deck.gl';
 import {StaticMap} from 'react-map-gl';
-import { Container, Grid, Button } from 'semantic-ui-react';
+import { Grid } from 'semantic-ui-react';
 import axios from 'axios';
 import './App.css';
 
@@ -25,9 +25,14 @@ class App extends Component {
     this.state = {
       name: null,
       airports: [],
-      arcs: [],
+      airport_lookups: [],
+      routes: {},
+      selectedAirport: 79130,
+      showRoutes: true,
       layers: []
     };
+
+    this._onSelectCounty = this._onSelectCounty.bind(this);
   }
 
   render() {
@@ -36,7 +41,10 @@ class App extends Component {
       <Grid celled className="mainGrid">
         <Grid.Row>
           <Grid.Column width={2}>
-            <Button onClick={this.handleKeyPress}>Click Here</Button>
+            <a onClick={this.handleKeyPress}>Toggle Routes</a><br />
+            <a onClick={this.handleKeyPress}>Eigenvector Centrality</a><br />
+            <a onClick={this.handleKeyPress}>Degree</a><br />
+            <a onClick={this.handleKeyPress}>Connectivity</a><br />
           </Grid.Column>
           <Grid.Column width={14}>
             <DeckGL
@@ -57,6 +65,14 @@ class App extends Component {
     );
   }
 
+  _onSelectCounty({object}) {
+    this.setState({
+      selectedAirport: object.id
+    });
+
+    this._refreshLayers();
+  }
+
   handleKeyPress(e) {
     e.preventDefault()
     console.log('HERE!')
@@ -64,7 +80,24 @@ class App extends Component {
 
   _refreshLayers() {
     var data = this.state.airports;
-    var layers = new ScatterplotLayer({
+
+    var layers = []
+    var arc_data = this.state.routes[this.state.selectedAirport];
+    console.log(arc_data);
+
+    var arc_layer = new ArcLayer({
+      id: 'arc',
+      data: arc_data,
+      getStrokeWidth: 1,
+      getSourcePosition: d => d.source,
+      getTargetPosition: d => d.destination,
+      getSourceColor: d => [255, 255, 140],
+      getTargetColor: d => [255, 140, 0],
+      // onHover: ({object}) => setTooltip(`${object.from.name} to ${object.to.name}`)
+    });
+    layers.push(arc_layer)
+
+    var airport_layer = new ScatterplotLayer({
       id: 'scatterplot-layer',
       data,
       pickable: true,
@@ -73,10 +106,13 @@ class App extends Component {
       radiusMinPixels: 1,
       radiusMaxPixels: 100,
       getPosition: d => d.location,
-      getRadius: d => 1000 + (d.evcent * 800) ** 2,
+      getRadius: d => 1000 + (d.pagerank * 30000) ** 2,
       getColor: d => [255, 140, 0],
-      // onHover: ({object}) => setTooltip(`${object.name}\n${object.address}`)
+      onClick: this._onSelectCounty,
+      // onHover: ({object}) => setTooltip(`${object.name}`)
     });
+
+    layers.push(airport_layer)
 
     this.setState({
       layers: layers
@@ -88,14 +124,46 @@ class App extends Component {
 
     axios.get(DATA_URL)
       .then(function(res){
+
+        // Update airports
         var airports = res.data.data;
-        console.log(airports);
-
-
         self.setState({
           airports: airports
         })
 
+        // Create key value pairs for airports
+        var airport_lookups = {};
+
+        self.state.airports.forEach(function(airport){
+          airport_lookups[airport.id] = airport;
+        });
+          
+        self.setState({
+          airport_lookups: airport_lookups
+        });
+
+
+        // Create route list
+        var routes = {};
+        self.state.airports.forEach(function(airport){
+          var airport_routes = [];
+
+          airport.destinations.forEach(function(destination){
+            if (self.state.airport_lookups[destination]) {
+              airport_routes.push({
+                source: airport.location,
+                destination: self.state.airport_lookups[destination].location
+              });
+            }    
+          });
+
+          routes[airport.id] = airport_routes;
+        });
+
+        self.setState({
+          routes: routes
+        });
+          
         self._refreshLayers();
       })
   }
