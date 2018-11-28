@@ -8,9 +8,40 @@ body {
 }
 
 #root {
-  height: 100%;
+    height: 100%;
 }
 
 .mainGrid {
-  height: 97%;
+    height: 97%;
+}
+
+.tooltip {
+    pointer-events: none;
+    position: absolute;
+    z-index: 9;
+    font-size: 12px;
+    padding: 8px;
+    background: #000;
+    color: #fff;
+    min-width: 160px;
+    max-height: 240px;
+    overflow-y: hidden;
+}
+
+.tooltip-title {
+    font-weight: bold;
+}
+
+.tooltip.interactive {
+    pointer-events: all;
+    background: #fcfcfc;
+    color: #444;
+    overflow-y:
+    auto;
+}
+
+.controlPanel {
+    position: absolute;
+    z-index: 9;
+    margin: 1em;
 }
