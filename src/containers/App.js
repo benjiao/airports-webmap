@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import DeckGL, { ScatterplotLayer, ArcLayer } from 'deck.gl';
 import { StaticMap } from 'react-map-gl';
 import { Slider } from 'react-semantic-ui-range'
-import { Menu } from 'semantic-ui-react';
+import { Menu, Segment, Header } from 'semantic-ui-react';
 import axios from 'axios';
 import './App.css';
 
@@ -72,8 +72,8 @@ class App extends Component {
           )}
           {this._renderTooltip}
         </DeckGL>
-        <div className="controlPanel">
 
+        <div className="controlPanel">
           <Menu vertical>
             <Menu.Item>
               <Menu.Header>Route Type</Menu.Header>
@@ -122,7 +122,6 @@ class App extends Component {
 
             <Menu.Item>
               <Menu.Header>Circle Scale</Menu.Header>
-
               <Slider color="red" inverted={false} settings={{
                 start: this.state.radiusMultiplier,
                 min: 1,
@@ -135,6 +134,13 @@ class App extends Component {
               }}/>
             </Menu.Item>
           </Menu>
+        </div>
+
+        <div className="airportListpanel">
+          <Segment>
+            <Header as="h3">Top Airports by Eigenvector Centrality</Header>
+            <Header as="h3">Top Airports by Eigenvector Centrality</Header>
+          </Segment>
         </div>
       </div>
     )
