@@ -1,8 +1,7 @@
 import React, { Component } from 'react';
 import DeckGL, { ScatterplotLayer, ArcLayer } from 'deck.gl';
 import { StaticMap } from 'react-map-gl';
-import { Slider } from 'react-semantic-ui-range'
-import { Menu, Segment, Header } from 'semantic-ui-react';
+import { Segment, Header, List, Dropdown } from 'semantic-ui-react';
 import axios from 'axios';
 import './App.css';
 
@@ -18,12 +17,24 @@ const viewState = {
 const MAPBOX_TOKEN = 'pk.eyJ1IjoiYmVuamlhbyIsImEiOiJjaWc4NXl0c3MwMGZ4dWhtNXBrc2V6YjhuIn0.8y1VtL2RJZ3wi8Aam6cG8Q';
 const DATA_URL = 'https://raw.githubusercontent.com/benjiao/airports-webmap/master/data/airports.json'
 
-// Multipliers for visualization
-const RADIUS_OFFSETS = {
-  'degree': 25000,
-  'pagerank': 200000,
-  'evcent': 35000
-}
+
+const IMPORTANCE_METRIC_OPTIONS = [
+  {
+    'value': 'degree',
+    'text': 'Degree Centrality',
+    'radius_offset': 25000
+  },
+  {
+    'value': 'pagerank',
+    'text': 'Pagerank',
+    'radius_offset': 200000
+  },
+  {
+    'value': 'evcent',
+    'text': 'Eigenvector Centrality',
+    'radius_offset': 35000
+  },
+]
 
 
 class App extends Component {
@@ -43,7 +54,7 @@ class App extends Component {
       layers: [],
 
       selectedRouteType: 'inbound',
-      selectedImportanceScore: 'evcent',
+      selectedImportanceScore: 0,
       radiusMultiplier: 1,
     };
 
@@ -53,10 +64,14 @@ class App extends Component {
     this._refreshLayers = this._refreshLayers.bind(this);
     this.handleRouteTypeClick = this.handleRouteTypeClick.bind(this)
     this.handleImportanceScoreClick = this.handleImportanceScoreClick.bind(this)
+    this.sortByImportance = this.sortByImportance.bind(this)
+    this.onChangeImportanceMetric = this.onChangeImportanceMetric.bind(this)
   }
 
   render() {
     
+    const self = this;
+
     return (
       <div>
         <DeckGL
@@ -73,77 +88,70 @@ class App extends Component {
           {this._renderTooltip}
         </DeckGL>
 
-        <div className="controlPanel">
-          <Menu vertical>
-            <Menu.Item>
-              <Menu.Header>Route Type</Menu.Header>
-
-              <Menu.Menu>
-
-                <Menu.Item
-                  name="inbound"
-                  active={this.state.selectedRouteType === 'inbound'}
-                  onClick={this.handleRouteTypeClick}>
-                  Inbound
-                </Menu.Item>
-
-                <Menu.Item
-                  name="outbound"
-                  active={this.state.selectedRouteType === 'outbound'}
-                  onClick={this.handleRouteTypeClick}>
-                  Outbound
-                </Menu.Item>
-              </Menu.Menu>
-            </Menu.Item>
-
-            <Menu.Item>
-              <Menu.Header>Importance Score</Menu.Header>
-              <Menu.Menu>
-                <Menu.Item
-                  name="degree"
-                  active={this.state.selectedImportanceScore === 'degree'}
-                  onClick={this.handleImportanceScoreClick}>
-                  Degree Centrality
-                </Menu.Item>
-                <Menu.Item
-                  name="pagerank"
-                  active={this.state.selectedImportanceScore === 'pagerank'}
-                  onClick={this.handleImportanceScoreClick}>
-                  Pagerank
-                </Menu.Item>
-                <Menu.Item
-                  name="evcent"
-                  active={this.state.selectedImportanceScore === 'evcent'}
-                  onClick={this.handleImportanceScoreClick}>
-                  Eigenvector Centrality
-                </Menu.Item>
-              </Menu.Menu>
-            </Menu.Item>
-
-            <Menu.Item>
-              <Menu.Header>Circle Scale</Menu.Header>
-              <Slider color="red" inverted={false} settings={{
-                start: this.state.radiusMultiplier,
-                min: 1,
-                max: 100,
-                step:0.25,
-                onChange: (value) => {
-                  this.setState({ radiusMultiplier: value });
-                  this._refreshLayers();
-                },
-              }}/>
-            </Menu.Item>
-          </Menu>
-        </div>
-
-        <div className="airportListpanel">
-          <Segment>
-            <Header as="h3">Top Airports by Eigenvector Centrality</Header>
-            <Header as="h3">Top Airports by Eigenvector Centrality</Header>
-          </Segment>
+        <div className="mainPanel">
+          <Segment.Group>
+            <Segment>
+              <Header as="h3">Top Airports</Header>
+               <span>
+                by{' '}
+                <Dropdown
+                  inline
+                  options={IMPORTANCE_METRIC_OPTIONS}
+                  defaultValue= {IMPORTANCE_METRIC_OPTIONS[0]['value']}
+                  name='selectedImportanceMetric'
+                  onChange={this.onChangeImportanceMetric}/>
+              </span>
+            </Segment>
+            <Segment className="topAirportList">
+              <List divided relaxed>
+                {this.state.airports.slice(0, 20).map(function(row, index){
+                  return (
+                    <List.Item>
+                      <List.Content>
+                        <List.Header>{row.name}</List.Header>
+                        {row[IMPORTANCE_METRIC_OPTIONS[self.state.selectedImportanceScore]['value']]}
+                      </List.Content>
+                    </List.Item>
+                  );
+                })}
+              </List>
+            </Segment>
+          </Segment.Group>
         </div>
       </div>
     )
+  }
+
+  componentDidUpdate(prevProps) {
+    var self = this;
+  }
+
+  onChangeImportanceMetric(event, data){
+    var self = this;
+
+    console.log("Change metric to: ", data.value)
+    let selectedMetric = IMPORTANCE_METRIC_OPTIONS.findIndex(x => x.value === data.value)
+
+    this.setState({
+      selectedImportanceScore: selectedMetric
+    });
+
+    var airports = self.state.airports;
+    self.setState({
+      airports: airports.sort(self.sortByImportance(selectedMetric))
+    })
+  }
+
+  sortByImportance(property) {
+    return function(a, b){
+      var importanceMetric = IMPORTANCE_METRIC_OPTIONS[property]['value']
+      if (a[importanceMetric] < b[importanceMetric])
+        return 1;
+      if (a[importanceMetric] > b[importanceMetric])
+        return -1;
+      return 0;
+
+    }
   }
 
   handleRouteTypeClick(e, {name}){
@@ -175,7 +183,7 @@ class App extends Component {
       <div className="tooltip" style={{left: x, top: y}}>
         <div className="tooltip-title">{ hoveredAirport.name }</div>
         <div className="tooltip-country">{ hoveredAirport.city }, { hoveredAirport.country }</div><hr />
-        <div className="tooltip-stat">{this.state.selectedImportanceScore}: { hoveredAirport[this.state.selectedImportanceScore] }</div>
+        <div className="tooltip-stat">{IMPORTANCE_METRIC_OPTIONS[this.state.selectedImportanceScore]['text']}: { hoveredAirport[IMPORTANCE_METRIC_OPTIONS[this.state.selectedImportanceScore]['value']] }</div>
       </div>
     );
   }
@@ -199,13 +207,12 @@ class App extends Component {
   }
 
   _getImportanceScore(d) {
-    return d[this.state.selectedImportanceScore]
+    return d[IMPORTANCE_METRIC_OPTIONS[this.state.selectedImportanceScore]['value']]
   }
 
   _getCircleRadius(d, radiusMultiplier) {
-    var radius = Math.sqrt(this._getImportanceScore(d))  * RADIUS_OFFSETS[this.state.selectedImportanceScore];
+    var radius = Math.sqrt(this._getImportanceScore(d))  * IMPORTANCE_METRIC_OPTIONS[this.state.selectedImportanceScore]['radius_offset'];
     return radius
-
   }
 
   _refreshLayers() {
@@ -227,7 +234,6 @@ class App extends Component {
       getTargetPosition: d => d.destination,
       getSourceColor: d => [255, 255, 140],
       getTargetColor: d => [255, 140, 0],
-      // onHover: ({object}) => setTooltip(`${object.from.name} to ${object.to.name}`)
     });
     layers.push(arc_layer)
 
@@ -262,8 +268,10 @@ class App extends Component {
         // Update airports
         var airports = res.data.data;
         self.setState({
-          airports: airports
+          airports: airports.sort(self.sortByImportance(0))
         })
+
+        console.log(self.state.airports.slice(0, 20))
 
         // Create key value pairs for airports
         var airport_lookups = {};

@@ -40,15 +40,17 @@ body {
     auto;
 }
 
-.controlPanel {
-    position: absolute;
-    z-index: 9;
-    margin: 1em;
+.topAirportList {
+  overflow: auto;
+  max-height: 350px;
+  /*position: absolute;*/
+  /*margin: 1em;*/
 }
 
-.airportListpanel {
+.mainPanel {
   position: absolute;
   z-index: 9;
-  right: 0;
+  left: 0;
   margin: 1em;
+  width: 300px;
 }
