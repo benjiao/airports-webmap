@@ -47,10 +47,25 @@ body {
   /*margin: 1em;*/
 }
 
+
+.rightPanel {
+  position: absolute;
+  z-index: 9;
+  right: 0;
+  margin: 1em;
+  width: 300px;
+  /*position: absolute;*/
+  /*margin: 1em;*/
+}
+
 .mainPanel {
   position: absolute;
   z-index: 9;
   left: 0;
   margin: 1em;
   width: 300px;
+}
+
+.card.hidden {
+  display:none;
 }

@@ -3,7 +3,8 @@ import DeckGL, { ScatterplotLayer, ArcLayer, TextLayer } from 'deck.gl';
 import { StaticMap } from 'react-map-gl';
 import axios from 'axios';
 import './App.css';
-import {AirportList} from '../components/AirportList'
+import { AirportList } from '../components/AirportList'
+import { AirportViewCard } from '../components/AirportViewCard'
 
 // Viewport settings
 const viewState = {
@@ -85,7 +86,6 @@ class App extends Component {
 
         </DeckGL>
 
-
         <div className="mainPanel">
           <AirportList 
             onChangeImportanceMetric={self.onChangeImportanceMetric}
@@ -93,12 +93,21 @@ class App extends Component {
             airportList={self.state.sortedAirports}
             selectedImportanceMetric={self.state.selectedImportanceMetric} />
         </div>
+        <div className="rightPanel">
+          <AirportViewCard 
+            airport={self.getSelectedAirport()}/>
+        </div>
       </div>
     )
   }
 
-  componentDidUpdate(prevProps) {
-    var self = this;
+  getSelectedAirport(){
+    if (this.state.selectedAirport) {
+      console.log("HERE!")
+      return this.state.airports[this.state.selectedAirport]
+    } else {
+      return null;
+    }
   }
 
   onChangeImportanceMetric(event, data){
@@ -146,8 +155,7 @@ class App extends Component {
     return (
       <div className="tooltip" style={{left: x, top: y}}>
         <div className="tooltip-title">{ hoveredAirport.name }</div>
-        <div className="tooltip-country">{ hoveredAirport.city }, { hoveredAirport.country }</div><hr />
-        <div className="tooltip-stat">{IMPORTANCE_METRIC_OPTIONS[this.state.selectedImportanceMetric]['text']}: { hoveredAirport[IMPORTANCE_METRIC_OPTIONS[this.state.selectedImportanceMetric]['value']] }</div>
+        <div className="tooltip-country">{ hoveredAirport.city }, { hoveredAirport.country }</div>
       </div>
     );
   }
