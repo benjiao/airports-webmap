@@ -69,3 +69,11 @@ body {
 .card.hidden {
   display:none;
 }
+
+.wikipediaLink {
+  margin-top: 12px;
+}
+
+.topAirportList .item.selected {
+  background: #eeee00;
+}

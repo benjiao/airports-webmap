@@ -4,20 +4,33 @@ import axios from 'axios';
 
 const WIKIPEDIA_URL = 'https://en.wikipedia.org/api/rest_v1/page/summary/'
 
+
+function WikipediaLink(props) {
+
+  const link = props.link;
+  if (link) {
+    return (
+      <p className="wikipediaLink">
+        <a href={link}>View in Wikipedia > </a>
+      </p>)
+  }
+  return null;
+}
+
 export class AirportViewCard extends Component {
   constructor(props) {
     super(props);
 
    this.state = {
       airportSummary: "",
-      airportThumbnail: ""
+      airportThumbnail: "",
+      wikiUrl: ""
     };
   }
 
   render () {
     const self = this;
     const {airport} = this.props
-    console.log(airport)
 
     if (airport) {
       return (<Card>
@@ -25,7 +38,10 @@ export class AirportViewCard extends Component {
         <Card.Content>
           <Card.Description dangerouslySetInnerHTML={{__html: self.state.airportSummary}}>
           </Card.Description>
+
+          <WikipediaLink link={self.state.wikiUrl} />
         </Card.Content>
+
       </Card>)
     } else {
       return <div></div>
@@ -33,19 +49,21 @@ export class AirportViewCard extends Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
-    if (prevProps.airport != this.props.airport) {
+    if (prevProps.airport !== this.props.airport) {
       const self = this;
       if (self.props.airport) {
         axios.get(WIKIPEDIA_URL + encodeURIComponent(this.props.airport.name))
         .then(function(res){
-          console.log(res.data);
           self.setState({
             airportSummary: res.data.extract_html,
-            airportThumbnail: res.data.thumbnail.source
+            airportThumbnail: res.data.thumbnail.source,
+            wikiUrl: res.data.content_urls.desktop.page
           })
         }).catch(function(err){
             self.setState({
-              airportSummary: "<b>" + self.props.airport.name + "</b>"
+              airportSummary: "<b>" + self.props.airport.name + "</b>",
+              airportThumbnail: "",
+              wikiUrl: ""
             })  
         })
       }

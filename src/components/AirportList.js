@@ -20,10 +20,6 @@ const IMPORTANCE_METRIC_OPTIONS = [
 ]
 
 export class AirportList extends Component {
-  constructor(props) {
-    super(props);
-  }
-
   render () {
     const self = this;
 
@@ -44,8 +40,13 @@ export class AirportList extends Component {
         <Segment className="topAirportList">
           <List divided relaxed>
             {self.props.airportList.slice(0, 20).map(function(row, index){
+              console.log(row)
               return (
-                <List.Item key={index}>
+                <List.Item
+                  key={index}
+                  value={row.id}
+                  onClick={self.props.onSelectAirport}
+                  className={self.props.selectedAirport === row.id ? 'selected': ''} >
                   <List.Content>
                     <List.Header>{row.name}</List.Header>
                       {row[IMPORTANCE_METRIC_OPTIONS[self.props.selectedImportanceMetric]['value']]}

@@ -48,13 +48,14 @@ class App extends Component {
       airports: {},
       sortedAirports: [],
       selectedRouteType: 'inbound',
-      selectedAirport: 79130,
+      selectedAirport: null,
       selectedImportanceMetric: 0,
       radiusMultiplier: 1,
     };
 
     this.onHoverAirport = this.onHoverAirport.bind(this);
     this.onSelectAirport = this.onSelectAirport.bind(this);
+    this.onSelectAirportFromList = this.onSelectAirportFromList.bind(this);
     this.onChangeImportanceMetric = this.onChangeImportanceMetric.bind(this);
 
     this.renderTooltip = this.renderTooltip.bind(this);
@@ -89,9 +90,12 @@ class App extends Component {
         <div className="mainPanel">
           <AirportList 
             onChangeImportanceMetric={self.onChangeImportanceMetric}
+            onSelectAirport={self.onSelectAirportFromList} 
             defaultImportanceMetric={0}
             airportList={self.state.sortedAirports}
-            selectedImportanceMetric={self.state.selectedImportanceMetric} />
+            selectedImportanceMetric={self.state.selectedImportanceMetric}
+            selectedAirport={self.state.selectedAirport}
+            />
         </div>
         <div className="rightPanel">
           <AirportViewCard 
@@ -103,10 +107,33 @@ class App extends Component {
 
   getSelectedAirport(){
     if (this.state.selectedAirport) {
-      console.log("HERE!")
       return this.state.airports[this.state.selectedAirport]
     } else {
       return null;
+    }
+  }
+
+  onSelectAirport({object}) {
+    if (this.state.selectedAirport === object.id) {
+      this.setState({
+        selectedAirport: null
+      })
+    } else {
+      this.setState({
+        selectedAirport: object.id
+      });
+    }
+  }
+
+  onSelectAirportFromList(event, data) {
+    if (this.state.selectedAirport === data.value) {
+      this.setState({
+        selectedAirport: null
+      })
+    } else {
+      this.setState({
+        selectedAirport: data.value
+      });
     }
   }
 
@@ -158,19 +185,6 @@ class App extends Component {
         <div className="tooltip-country">{ hoveredAirport.city }, { hoveredAirport.country }</div>
       </div>
     );
-  }
-
-  onSelectAirport({object}) {
-
-    if (this.state.selectedAirport === object.id) {
-      this.setState({
-        selectedAirport: null
-      })
-    } else {
-      this.setState({
-        selectedAirport: object.id
-      });
-    }
   }
 
   getArcs() {
