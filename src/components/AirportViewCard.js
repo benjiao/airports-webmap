@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Card } from 'semantic-ui-react';
+import { Card, Image } from 'semantic-ui-react';
 import axios from 'axios';
 
 const WIKIPEDIA_URL = 'https://en.wikipedia.org/api/rest_v1/page/summary/'
@@ -9,7 +9,8 @@ export class AirportViewCard extends Component {
     super(props);
 
    this.state = {
-      airportSummary: ""
+      airportSummary: "",
+      airportThumbnail: ""
     };
   }
 
@@ -20,6 +21,7 @@ export class AirportViewCard extends Component {
 
     if (airport) {
       return (<Card>
+        <Image src={ self.state.airportThumbnail } />
         <Card.Content>
           <Card.Description dangerouslySetInnerHTML={{__html: self.state.airportSummary}}>
           </Card.Description>
@@ -36,9 +38,10 @@ export class AirportViewCard extends Component {
       if (self.props.airport) {
         axios.get(WIKIPEDIA_URL + encodeURIComponent(this.props.airport.name))
         .then(function(res){
-          console.log(res.data.extract_html);
+          console.log(res.data);
           self.setState({
-            airportSummary: res.data.extract_html
+            airportSummary: res.data.extract_html,
+            airportThumbnail: res.data.thumbnail.source
           })
         }).catch(function(err){
             self.setState({
