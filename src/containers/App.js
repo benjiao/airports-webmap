@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
-import DeckGL, { ScatterplotLayer, ArcLayer } from 'deck.gl';
+import DeckGL, { ScatterplotLayer, ArcLayer, TextLayer } from 'deck.gl';
 import { StaticMap } from 'react-map-gl';
-import { Segment, Header, List, Dropdown } from 'semantic-ui-react';
 import axios from 'axios';
 import './App.css';
+import {AirportList} from '../components/AirportList'
 
 // Viewport settings
 const viewState = {
@@ -27,55 +27,50 @@ const IMPORTANCE_METRIC_OPTIONS = [
   {
     'value': 'pagerank',
     'text': 'Pagerank',
-    'radius_offset': 200000
+    'radius_offset': 150000
   },
   {
     'value': 'evcent',
     'text': 'Eigenvector Centrality',
-    'radius_offset': 35000
+    'radius_offset': 30000
   },
 ]
 
 
 class App extends Component {
 
-  constructor() {
-    super();
+  constructor(props) {
+    super(props);
 
     this.state = {
       name: null,
-      airports: [],
-      airport_lookups: [],
-      outbound_routes: {},
-      inbound_routes: {},
-      selectedAirport: 79130,
-      hoveredAirport: null,
-      showRoutes: true,
-      layers: [],
-
+      airports: {},
+      sortedAirports: [],
       selectedRouteType: 'inbound',
-      selectedImportanceScore: 0,
+      selectedAirport: 79130,
+      selectedImportanceMetric: 0,
       radiusMultiplier: 1,
     };
 
-    this._onHoverAirport = this._onHoverAirport.bind(this);
-    this._onSelectAirport = this._onSelectAirport.bind(this);
-    this._renderTooltip = this._renderTooltip.bind(this);
-    this._refreshLayers = this._refreshLayers.bind(this);
-    this.handleRouteTypeClick = this.handleRouteTypeClick.bind(this)
-    this.handleImportanceScoreClick = this.handleImportanceScoreClick.bind(this)
-    this.sortByImportance = this.sortByImportance.bind(this)
-    this.onChangeImportanceMetric = this.onChangeImportanceMetric.bind(this)
+    this.onHoverAirport = this.onHoverAirport.bind(this);
+    this.onSelectAirport = this.onSelectAirport.bind(this);
+    this.onChangeImportanceMetric = this.onChangeImportanceMetric.bind(this);
+
+    this.renderTooltip = this.renderTooltip.bind(this);
+    this.fetchData = this.fetchData.bind(this);
+
+    this.getLayers = this.getLayers.bind(this);
   }
 
   render() {
     
     const self = this;
+    const {airports} = this.state;
 
     return (
       <div>
         <DeckGL
-          layers={ this.state.layers }
+          layers={ this.getLayers() }
           initialViewState={viewState}
           controller={true}>
           {(
@@ -83,40 +78,20 @@ class App extends Component {
               reuseMaps
               mapStyle="mapbox://styles/mapbox/dark-v9"
               preventStyleDiffing={true}
-              mapboxApiAccessToken={MAPBOX_TOKEN} />
+              mapboxApiAccessToken={MAPBOX_TOKEN}
+              onContextMenu={event => event.preventDefault()}/>
           )}
-          {this._renderTooltip}
+          {this.renderTooltip}
+
         </DeckGL>
 
+
         <div className="mainPanel">
-          <Segment.Group>
-            <Segment>
-              <Header as="h3">Top Airports</Header>
-               <span>
-                by{' '}
-                <Dropdown
-                  inline
-                  options={IMPORTANCE_METRIC_OPTIONS}
-                  defaultValue= {IMPORTANCE_METRIC_OPTIONS[0]['value']}
-                  name='selectedImportanceMetric'
-                  onChange={this.onChangeImportanceMetric}/>
-              </span>
-            </Segment>
-            <Segment className="topAirportList">
-              <List divided relaxed>
-                {this.state.airports.slice(0, 20).map(function(row, index){
-                  return (
-                    <List.Item>
-                      <List.Content>
-                        <List.Header>{row.name}</List.Header>
-                        {row[IMPORTANCE_METRIC_OPTIONS[self.state.selectedImportanceScore]['value']]}
-                      </List.Content>
-                    </List.Item>
-                  );
-                })}
-              </List>
-            </Segment>
-          </Segment.Group>
+          <AirportList 
+            onChangeImportanceMetric={self.onChangeImportanceMetric}
+            defaultImportanceMetric={0}
+            airportList={self.state.sortedAirports}
+            selectedImportanceMetric={self.state.selectedImportanceMetric} />
         </div>
       </div>
     )
@@ -128,18 +103,15 @@ class App extends Component {
 
   onChangeImportanceMetric(event, data){
     var self = this;
+    var {airports} = self.state
 
-    console.log("Change metric to: ", data.value)
-    let selectedMetric = IMPORTANCE_METRIC_OPTIONS.findIndex(x => x.value === data.value)
+    let selectedImportanceMetric = IMPORTANCE_METRIC_OPTIONS.findIndex(x => x.value === data.value)
+    var sortedAirports = Object.values(airports).sort(this.sortByImportance(selectedImportanceMetric));
 
     this.setState({
-      selectedImportanceScore: selectedMetric
+      selectedImportanceMetric: selectedImportanceMetric,
+      sortedAirports: sortedAirports
     });
-
-    var airports = self.state.airports;
-    self.setState({
-      airports: airports.sort(self.sortByImportance(selectedMetric))
-    })
   }
 
   sortByImportance(property) {
@@ -162,19 +134,11 @@ class App extends Component {
     this._refreshLayers()
   }
 
-  handleImportanceScoreClick(e, {name}) {
-    this.setState({
-      selectedImportanceScore: name
-    })
-
-    this._refreshLayers()
-  }
-
-  _onHoverAirport({x, y, object}) {
+  onHoverAirport({x, y, object}) {
     this.setState({x: x, y: y, hoveredAirport: object});
   }
 
-  _renderTooltip() {
+  renderTooltip() {
     const {x, y, hoveredAirport} = this.state;
 
     if (!hoveredAirport) return null;
@@ -183,12 +147,12 @@ class App extends Component {
       <div className="tooltip" style={{left: x, top: y}}>
         <div className="tooltip-title">{ hoveredAirport.name }</div>
         <div className="tooltip-country">{ hoveredAirport.city }, { hoveredAirport.country }</div><hr />
-        <div className="tooltip-stat">{IMPORTANCE_METRIC_OPTIONS[this.state.selectedImportanceScore]['text']}: { hoveredAirport[IMPORTANCE_METRIC_OPTIONS[this.state.selectedImportanceScore]['value']] }</div>
+        <div className="tooltip-stat">{IMPORTANCE_METRIC_OPTIONS[this.state.selectedImportanceMetric]['text']}: { hoveredAirport[IMPORTANCE_METRIC_OPTIONS[this.state.selectedImportanceMetric]['value']] }</div>
       </div>
     );
   }
 
-  _onSelectAirport({object}) {
+  onSelectAirport({object}) {
 
     if (this.state.selectedAirport === object.id) {
       this.setState({
@@ -199,133 +163,116 @@ class App extends Component {
         selectedAirport: object.id
       });
     }
-    this._refreshLayers();
   }
 
-  handleKeyPress(e) {
-    e.preventDefault()
+  getArcs() {
+    var self = this;
+    var arcs = [];
+    var {airports, selectedAirport, selectedRouteType} = this.state
+
+    if (selectedRouteType === 'inbound' && airports[selectedAirport]) {
+      airports[selectedAirport].sources.forEach(function(source){
+        if (airports[source]) {
+          arcs.push({
+            source: airports[source].location,
+            destination: airports[selectedAirport].location,
+          });
+        }    
+      });
+
+    } else if (selectedRouteType === 'outbound') {
+
+    }
+
+    return arcs;
   }
 
-  _getImportanceScore(d) {
-    return d[IMPORTANCE_METRIC_OPTIONS[this.state.selectedImportanceScore]['value']]
+  getLayers() {
+
+    return [
+      new ScatterplotLayer({
+        id: 'scatterplot-layer',
+        data: Object.values(this.state.airports),
+        pickable: true,
+        opacity: 0.8,
+        radiusScale: 6,
+        radiusMinPixels: 1,
+        radiusMaxPixels: 100,
+        onClick: this.onSelectAirport,
+        onHover: this.onHoverAirport,
+        getPosition: d => d.location,
+        getRadius: d => this._getCircleRadius(d, this.state.radiusMultiplier),
+        getColor: d => this._getColor(d),
+      }),
+      new ArcLayer({
+        id: 'arc',
+        data: this.getArcs(),
+        getStrokeWidth: 1,
+        getSourcePosition: d => d.source,
+        getTargetPosition: d => d.destination,
+        getSourceColor: d => [255, 255, 140],
+        getTargetColor: d => [255, 140, 0]
+      }),
+
+      new TextLayer({
+        id: 'text-layer',
+        data: this.state.sortedAirports.slice(0, 20),
+        pickable: true,
+        getPosition: d => d.location,
+        getText: d => "#1",
+        getColor: [255, 255, 255],
+        getSize: 32,
+        getAngle: 0,
+        getTextAnchor: 'middle',
+        getAlignmentBaseline: 'center',
+      }), 
+    ]
+  }
+
+  _getColor(d) {
+    var maxValue = this.state.sortedAirports[0][IMPORTANCE_METRIC_OPTIONS[this.state.selectedImportanceMetric].value]
+    return [255, 255 - (255 * d[IMPORTANCE_METRIC_OPTIONS[this.state.selectedImportanceMetric].value] / maxValue), 0];
   }
 
   _getCircleRadius(d, radiusMultiplier) {
-    var radius = Math.sqrt(this._getImportanceScore(d))  * IMPORTANCE_METRIC_OPTIONS[this.state.selectedImportanceScore]['radius_offset'];
-    return radius
+    var maxValue = this.state.sortedAirports[0][IMPORTANCE_METRIC_OPTIONS[this.state.selectedImportanceMetric].value]
+    var rescaledValue = this._getImportanceScore(d) / maxValue
+    var radius = Math.sqrt(rescaledValue) * 18000
+    return radius;
   }
 
-  _refreshLayers() {
-    var data = this.state.airports;
-    var layers = []
-
-    var arc_data = [];
-    if (this.state.selectedRouteType === 'inbound') {
-      arc_data = this.state.inbound_routes[this.state.selectedAirport];
-    } else if (this.state.selectedRouteType === 'outbound') {
-      arc_data = this.state.outbound_routes[this.state.selectedAirport];
-    }
-
-    var arc_layer = new ArcLayer({
-      id: 'arc',
-      data: arc_data,
-      getStrokeWidth: 1,
-      getSourcePosition: d => d.source,
-      getTargetPosition: d => d.destination,
-      getSourceColor: d => [255, 255, 140],
-      getTargetColor: d => [255, 140, 0],
-    });
-    layers.push(arc_layer)
-
-    var airport_layer = new ScatterplotLayer({
-      id: 'scatterplot-layer',
-      data,
-      pickable: true,
-      opacity: 0.8,
-      radiusScale: 6,
-      radiusMinPixels: 1,
-      radiusMaxPixels: 100,
-      onClick: this._onSelectAirport,
-      onHover: this._onHoverAirport,
-      getPosition: d => d.location,
-      getRadius: d => this._getCircleRadius(d, this.state.radiusMultiplier),
-      getColor: d => [255, 140, 0],
-    });
-
-    layers.push(airport_layer)
-
-    this.setState({
-      layers: layers
-    })
-  }
-
-  _initializeData() {
+  fetchData() {
     var self = this;
 
     axios.get(DATA_URL)
       .then(function(res){
 
         // Update airports
-        var airports = res.data.data;
+        var airports = [];
+        res.data.data.forEach(function(airport){
+          airports[airport.id] = airport;
+        });
+
+        var sortedAirports = Object.values(airports).sort(self.sortByImportance(0));
         self.setState({
-          airports: airports.sort(self.sortByImportance(0))
+          airports: airports,
+          sortedAirports: sortedAirports
         })
-
-        console.log(self.state.airports.slice(0, 20))
-
-        // Create key value pairs for airports
-        var airport_lookups = {};
-
-        self.state.airports.forEach(function(airport){
-          airport_lookups[airport.id] = airport;
-        });
-          
-        self.setState({
-          airport_lookups: airport_lookups
-        });
-
-        // Create route list
-        var inbound_routes = {}
-        var outbound_routes = {};
-
-        self.state.airports.forEach(function(airport){
-          var airport_inbound = [];
-          var airport_outbound = [];
-
-          airport.sources.forEach(function(source){
-            if (self.state.airport_lookups[source]) {
-              airport_inbound.push({
-                source: self.state.airport_lookups[source].location,
-                destination: airport.location,
-              });
-            }    
-          });
-
-          airport.destinations.forEach(function(destination){
-            if (self.state.airport_lookups[destination]) {
-              airport_outbound.push({
-                source: airport.location,
-                destination: self.state.airport_lookups[destination].location
-              });
-            }    
-          });
-
-          inbound_routes[airport.id] = airport_inbound;
-          outbound_routes[airport.id] = airport_outbound;
-        });
-
-        self.setState({
-          inbound_routes: inbound_routes,
-          outbound_routes: outbound_routes
-        });
-          
-        self._refreshLayers();
       })
   }
 
   componentDidMount() {
-    this._initializeData();
+    this.fetchData();
+
+    document.addEventListener('contextmenu', this._handleContextMenu);
   }
+  _handleContextMenu(event) {
+    event.preventDefault();
+  }
+  _getImportanceScore(d) {
+    return d[IMPORTANCE_METRIC_OPTIONS[this.state.selectedImportanceMetric]['value']];
+  }
+
 }
 
 export default App;
