@@ -28,6 +28,9 @@ body {
     overflow-y: hidden;
 }
 
+.tooltip-country {
+  margin-bottom: 8px;
+}
 .tooltip-title {
     font-weight: bold;
 }
@@ -74,6 +77,10 @@ body {
   margin-top: 12px;
 }
 
-.topAirportList .item.selected {
-  background: #eeee00;
+.topAirportList .ui.card.selected {
+  background: #ddd;
+}
+
+.topAirportList .ui.card .content h4.header {
+  font-size: 14px;
 }

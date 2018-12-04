@@ -180,7 +180,7 @@ class App extends Component {
   }
 
   renderTooltip() {
-    const {x, y, hoveredAirport, sortedAirports} = this.state;
+    const {x, y, hoveredAirport, sortedAirports, selectedImportanceMetric} = this.state;
 
     if (!hoveredAirport) return null;
 
@@ -188,8 +188,10 @@ class App extends Component {
 
     return (
       <div className="tooltip" style={{left: x, top: y}}>
-        <div className="tooltip-title">#{ rank + 1 } - { hoveredAirport.name }</div>
+        <div className="tooltip-title">{ hoveredAirport.name }</div>
         <div className="tooltip-country">{ hoveredAirport.city }, { hoveredAirport.country }</div>
+        <div className="tooltip-rank">Rank: { rank + 1 } </div>
+        <div className="tooltip-importance">{IMPORTANCE_METRIC_OPTIONS[selectedImportanceMetric]['text']}: { hoveredAirport[IMPORTANCE_METRIC_OPTIONS[selectedImportanceMetric]['value']].toFixed(5) }</div>
       </div>
     );
   }
