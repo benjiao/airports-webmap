@@ -69,7 +69,4 @@ export class AirportViewCard extends Component {
       }
     }
   }
-  fetchAirportTrivia() {
-  }
-
 }

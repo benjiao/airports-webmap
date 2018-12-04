@@ -5,6 +5,7 @@ import axios from 'axios';
 import './App.css';
 import { AirportList } from '../components/AirportList'
 import { AirportViewCard } from '../components/AirportViewCard'
+import { SliderFilter } from '../components/SliderFilter'
 
 // Viewport settings
 const viewState = {
@@ -51,6 +52,7 @@ class App extends Component {
       selectedAirport: null,
       selectedImportanceMetric: 0,
       radiusMultiplier: 1,
+      percentDisplayed: 100
     };
 
     this.onHoverAirport = this.onHoverAirport.bind(this);
@@ -58,6 +60,7 @@ class App extends Component {
     this.onSelectAirportFromList = this.onSelectAirportFromList.bind(this);
     this.onChangeImportanceMetric = this.onChangeImportanceMetric.bind(this);
 
+    this.changePercentDisplayed = this.changePercentDisplayed.bind(this)
     this.renderTooltip = this.renderTooltip.bind(this);
     this.fetchData = this.fetchData.bind(this);
 
@@ -96,11 +99,16 @@ class App extends Component {
             selectedImportanceMetric={self.state.selectedImportanceMetric}
             selectedAirport={self.state.selectedAirport}
             />
+
+          <SliderFilter
+            onChangeDisplayedPercentage={self.changePercentDisplayed} />
         </div>
+
         <div className="rightPanel">
           <AirportViewCard 
             airport={self.getSelectedAirport()}/>
         </div>
+
       </div>
     )
   }
@@ -111,6 +119,12 @@ class App extends Component {
     } else {
       return null;
     }
+  }
+
+  changePercentDisplayed(value) {
+    this.setState({
+      percentDisplayed: value
+    })
   }
 
   onSelectAirport({object}) {
@@ -158,16 +172,7 @@ class App extends Component {
       if (a[importanceMetric] > b[importanceMetric])
         return -1;
       return 0;
-
     }
-  }
-
-  handleRouteTypeClick(e, {name}){
-
-    this.setState({
-      selectedRouteType: name
-    })
-    this._refreshLayers()
   }
 
   onHoverAirport({x, y, object}) {
@@ -175,13 +180,15 @@ class App extends Component {
   }
 
   renderTooltip() {
-    const {x, y, hoveredAirport} = this.state;
+    const {x, y, hoveredAirport, sortedAirports} = this.state;
 
     if (!hoveredAirport) return null;
 
+    var rank = sortedAirports.findIndex(x => x.id === hoveredAirport.id)
+
     return (
       <div className="tooltip" style={{left: x, top: y}}>
-        <div className="tooltip-title">{ hoveredAirport.name }</div>
+        <div className="tooltip-title">#{ rank + 1 } - { hoveredAirport.name }</div>
         <div className="tooltip-country">{ hoveredAirport.city }, { hoveredAirport.country }</div>
       </div>
     );
@@ -210,21 +217,21 @@ class App extends Component {
   }
 
   getLayers() {
+    var {sortedAirports, percentDisplayed} = this.state
 
     return [
       new ScatterplotLayer({
         id: 'scatterplot-layer',
-        data: Object.values(this.state.airports),
+        data: sortedAirports.slice(0, Math.floor(sortedAirports.length * (percentDisplayed / 100))),
         pickable: true,
-        opacity: 0.8,
         radiusScale: 6,
         radiusMinPixels: 1,
         radiusMaxPixels: 100,
         onClick: this.onSelectAirport,
         onHover: this.onHoverAirport,
         getPosition: d => d.location,
-        getRadius: d => this._getCircleRadius(d, this.state.radiusMultiplier),
-        getColor: d => this._getColor(d),
+        getRadius: d => this._getCircleRadius(d),
+        getColor: d => this._getColor(d)
       }),
       new ArcLayer({
         id: 'arc',
@@ -236,18 +243,18 @@ class App extends Component {
         getTargetColor: d => [255, 140, 0]
       }),
 
-      new TextLayer({
-        id: 'text-layer',
-        data: this.state.sortedAirports.slice(0, 20),
-        pickable: true,
-        getPosition: d => d.location,
-        getText: d => "#1",
-        getColor: [255, 255, 255],
-        getSize: 32,
-        getAngle: 0,
-        getTextAnchor: 'middle',
-        getAlignmentBaseline: 'center',
-      }), 
+      // new TextLayer({
+      //   id: 'text-layer',
+      //   data: this.state.sortedAirports.slice(0, 20),
+      //   pickable: true,
+      //   getPosition: d => d.location,
+      //   getText: d => "#1",
+      //   getColor: [255, 255, 255],
+      //   getSize: 32,
+      //   getAngle: 0,
+      //   getTextAnchor: 'middle',
+      //   getAlignmentBaseline: 'center',
+      // }), 
     ]
   }
 
@@ -256,7 +263,7 @@ class App extends Component {
     return [255, 255 - (255 * d[IMPORTANCE_METRIC_OPTIONS[this.state.selectedImportanceMetric].value] / maxValue), 0];
   }
 
-  _getCircleRadius(d, radiusMultiplier) {
+  _getCircleRadius(d) {
     var maxValue = this.state.sortedAirports[0][IMPORTANCE_METRIC_OPTIONS[this.state.selectedImportanceMetric].value]
     var rescaledValue = this._getImportanceScore(d) / maxValue
     var radius = Math.sqrt(rescaledValue) * 18000
