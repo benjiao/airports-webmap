@@ -1,15 +1,11 @@
 import React, { Component } from 'react';
 import { Segment, Header } from 'semantic-ui-react';
 import { Slider } from 'react-semantic-ui-range'
-import axios from 'axios';
 
 
 export class FilterSlider extends Component {
 
   render () {
-    const self = this;
-    const {airport} = this.props
-
     const settings = {
       start: 100,
       min: 1,

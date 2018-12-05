@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Label, Image, Card, Segment, Header, List, Dropdown } from 'semantic-ui-react';
+import { Card, Segment, Header, Dropdown } from 'semantic-ui-react';
 
 const IMPORTANCE_METRIC_OPTIONS = [
   {

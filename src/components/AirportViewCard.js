@@ -37,17 +37,16 @@ export class AirportViewCard extends Component {
     if (airport) {
       return (<Card>
         <Image src={ self.state.airportThumbnail } />
-        <Card.Content>
-          <Card.Description dangerouslySetInnerHTML={{__html: self.state.airportSummary}}>
+        <Card.Content className='wikipediaSummary'>
+          <Card.Description
+            dangerouslySetInnerHTML={{__html: self.state.airportSummary}}>
           </Card.Description>
 
           <WikipediaLink link={self.state.wikiUrl} />
         </Card.Content>
         <Card.Content extra>
-          <a>
-            <Icon name='plane' />
-            {airport.sources.length} inbound, {airport.destinations.length} outbound
-          </a>
+          <Icon name='plane' />
+          {airport.sources.length} inbound, {airport.destinations.length} outbound
         </Card.Content>
 
       </Card>)

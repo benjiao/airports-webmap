@@ -1,13 +1,9 @@
 import React, { Component } from 'react';
 import { Segment, Header } from 'semantic-ui-react';
 import { Slider } from 'react-semantic-ui-range'
-import axios from 'axios';
-
 
 export class OpacitySlider extends Component {
   render () {
-    const self = this;
-
     const settings = {
       start: 0.5,
       min: 0,

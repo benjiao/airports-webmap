@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import DeckGL, { ScatterplotLayer, ArcLayer, TextLayer } from 'deck.gl';
+import DeckGL, { ScatterplotLayer, ArcLayer } from 'deck.gl';
 import { StaticMap } from 'react-map-gl';
 import axios from 'axios';
 import './App.css';
@@ -74,7 +74,7 @@ class App extends Component {
   render() {
     
     const self = this;
-    const {airports} = this.state;
+    const {sortedAirports, selectedAirport, selectedImportanceMetric} = this.state;
 
     return (
       <div>
@@ -99,9 +99,9 @@ class App extends Component {
             onChangeImportanceMetric={self.onChangeImportanceMetric}
             onSelectAirport={self.onSelectAirportFromList} 
             defaultImportanceMetric={0}
-            airportList={self.state.sortedAirports}
-            selectedImportanceMetric={self.state.selectedImportanceMetric}
-            selectedAirport={self.state.selectedAirport}
+            airportList={sortedAirports}
+            selectedImportanceMetric={selectedImportanceMetric}
+            selectedAirport={selectedAirport}
             />
 
           <FilterSlider
@@ -210,7 +210,6 @@ class App extends Component {
   }
 
   getArcs() {
-    var self = this;
     var arcs = [];
     var {airports, selectedAirport, selectedRouteType} = this.state
 
