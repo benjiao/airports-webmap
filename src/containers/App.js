@@ -8,7 +8,7 @@ import { AirportList } from '../components/AirportList'
 import { AirportViewCard } from '../components/AirportViewCard'
 import { FilterSlider } from '../components/FilterSlider'
 import { OpacitySlider } from '../components/OpacitySlider'
-import { IMPORTANCE_METRIC_OPTIONS } from 'Constants'
+import { IMPORTANCE_METRIC_OPTIONS } from '../containers/Constants'
 
 // Viewport settings
 const viewState = {
