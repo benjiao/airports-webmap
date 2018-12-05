@@ -66,7 +66,7 @@ body {
   z-index: 9;
   left: 0;
   margin: 1em;
-  width: 300px;
+  width: 200px;
 }
 
 .card.hidden {
@@ -81,11 +81,15 @@ body {
   background: #ddd;
 }
 
-.topAirportList .ui.card .content h4.header {
+.topAirportList .ui.card .content .header {
   font-size: 14px;
 }
 
 .wikipediaSummary {
   max-height: 250px;
   overflow: auto;
+}
+
+.content.wikipediaSumamry > .description > p {
+  font-size: 10px;
 }

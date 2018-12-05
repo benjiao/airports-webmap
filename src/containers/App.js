@@ -3,6 +3,7 @@ import DeckGL, { ScatterplotLayer, ArcLayer } from 'deck.gl';
 import { StaticMap } from 'react-map-gl';
 import axios from 'axios';
 import './App.css';
+import { MetricChanger } from '../components/MetricChanger'
 import { AirportList } from '../components/AirportList'
 import { AirportViewCard } from '../components/AirportViewCard'
 import { FilterSlider } from '../components/FilterSlider'
@@ -95,6 +96,14 @@ class App extends Component {
         </DeckGL>
 
         <div className="mainPanel">
+
+          <MetricChanger 
+            onChangeImportanceMetric={self.onChangeImportanceMetric}
+            onSelectAirport={self.onSelectAirportFromList} 
+            defaultImportanceMetric={0}
+            selectedImportanceMetric={selectedImportanceMetric}
+            />
+
           <AirportList 
             onChangeImportanceMetric={self.onChangeImportanceMetric}
             onSelectAirport={self.onSelectAirportFromList} 
