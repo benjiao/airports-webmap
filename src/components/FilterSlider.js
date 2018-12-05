@@ -4,16 +4,7 @@ import { Slider } from 'react-semantic-ui-range'
 import axios from 'axios';
 
 
-export class SliderFilter extends Component {
-  constructor(props) {
-    super(props);
-
-   this.state = {
-      airportSummary: "",
-      airportThumbnail: "",
-      wikiUrl: ""
-    };
-  }
+export class FilterSlider extends Component {
 
   render () {
     const self = this;
@@ -28,7 +19,7 @@ export class SliderFilter extends Component {
     }
 
     return (<Segment>
-      <Header as="h4">Show More/Less</Header>
+      <Header as="h4">Show More/Less Points</Header>
       <Slider
         discrete color="red"
         inverted={false}

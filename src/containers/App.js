@@ -5,7 +5,8 @@ import axios from 'axios';
 import './App.css';
 import { AirportList } from '../components/AirportList'
 import { AirportViewCard } from '../components/AirportViewCard'
-import { SliderFilter } from '../components/SliderFilter'
+import { FilterSlider } from '../components/FilterSlider'
+import { OpacitySlider } from '../components/OpacitySlider'
 
 // Viewport settings
 const viewState = {
@@ -52,7 +53,8 @@ class App extends Component {
       selectedAirport: null,
       selectedImportanceMetric: 0,
       radiusMultiplier: 1,
-      percentDisplayed: 100
+      percentDisplayed: 100,
+      arcOpacity: 1
     };
 
     this.onHoverAirport = this.onHoverAirport.bind(this);
@@ -61,6 +63,8 @@ class App extends Component {
     this.onChangeImportanceMetric = this.onChangeImportanceMetric.bind(this);
 
     this.changePercentDisplayed = this.changePercentDisplayed.bind(this)
+    this.changeArcOpacity = this.changeArcOpacity.bind(this)
+
     this.renderTooltip = this.renderTooltip.bind(this);
     this.fetchData = this.fetchData.bind(this);
 
@@ -100,8 +104,11 @@ class App extends Component {
             selectedAirport={self.state.selectedAirport}
             />
 
-          <SliderFilter
+          <FilterSlider
             onChangeDisplayedPercentage={self.changePercentDisplayed} />
+
+          <OpacitySlider
+            onChange={self.changeArcOpacity} />
         </div>
 
         <div className="rightPanel">
@@ -119,6 +126,12 @@ class App extends Component {
     } else {
       return null;
     }
+  }
+
+  changeArcOpacity(value) {
+    this.setState({
+      arcOpacity: value
+    })
   }
 
   changePercentDisplayed(value) {
@@ -219,7 +232,7 @@ class App extends Component {
   }
 
   getLayers() {
-    var {sortedAirports, percentDisplayed} = this.state
+    var {sortedAirports, percentDisplayed, arcOpacity} = this.state
 
     return [
       new ScatterplotLayer({
@@ -238,6 +251,7 @@ class App extends Component {
       new ArcLayer({
         id: 'arc',
         data: this.getArcs(),
+        opacity: arcOpacity,
         getStrokeWidth: 1,
         getSourcePosition: d => d.source,
         getTargetPosition: d => d.destination,

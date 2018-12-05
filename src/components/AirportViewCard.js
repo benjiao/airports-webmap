@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Card, Image } from 'semantic-ui-react';
+import { Card, Image, Icon } from 'semantic-ui-react';
 import axios from 'axios';
 
 const WIKIPEDIA_URL = 'https://en.wikipedia.org/api/rest_v1/page/summary/'
@@ -32,6 +32,8 @@ export class AirportViewCard extends Component {
     const self = this;
     const {airport} = this.props
 
+    console.log(airport);
+
     if (airport) {
       return (<Card>
         <Image src={ self.state.airportThumbnail } />
@@ -40,6 +42,12 @@ export class AirportViewCard extends Component {
           </Card.Description>
 
           <WikipediaLink link={self.state.wikiUrl} />
+        </Card.Content>
+        <Card.Content extra>
+          <a>
+            <Icon name='plane' />
+            {airport.sources.length} inbound, {airport.destinations.length} outbound
+          </a>
         </Card.Content>
 
       </Card>)
