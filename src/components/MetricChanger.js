@@ -17,6 +17,16 @@ const IMPORTANCE_METRIC_OPTIONS = [
     'text': 'Eigenvector Centrality',
     'radius_offset': 30000
   },
+  {
+    'value': 'beweenness',
+    'text': 'Betweenness',
+    'radius_offset': 30000
+  },
+  {
+    'value': 'connectivity',
+    'text': 'Eigenvector Centrality',
+    'radius_offset': 30000
+  },
 ]
 
 export class MetricChanger extends Component {
