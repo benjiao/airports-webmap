@@ -1,33 +1,7 @@
 import React, { Component } from 'react';
 import { Segment, Header, Dropdown } from 'semantic-ui-react';
+import { IMPORTANCE_METRIC_OPTIONS } from '../containers/Constants'
 
-const IMPORTANCE_METRIC_OPTIONS = [
-  {
-    'value': 'degree',
-    'text': 'Degree Centrality',
-    'radius_offset': 25000
-  },
-  {
-    'value': 'pagerank',
-    'text': 'Pagerank',
-    'radius_offset': 150000
-  },
-  {
-    'value': 'evcent',
-    'text': 'Eigenvector Centrality',
-    'radius_offset': 30000
-  },
-  {
-    'value': 'beweenness',
-    'text': 'Betweenness',
-    'radius_offset': 30000
-  },
-  {
-    'value': 'connectivity',
-    'text': 'Eigenvector Centrality',
-    'radius_offset': 30000
-  },
-]
 
 export class MetricChanger extends Component {
   render () {

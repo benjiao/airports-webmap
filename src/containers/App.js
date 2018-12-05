@@ -8,6 +8,7 @@ import { AirportList } from '../components/AirportList'
 import { AirportViewCard } from '../components/AirportViewCard'
 import { FilterSlider } from '../components/FilterSlider'
 import { OpacitySlider } from '../components/OpacitySlider'
+import { IMPORTANCE_METRIC_OPTIONS } from 'Constants'
 
 // Viewport settings
 const viewState = {
@@ -20,35 +21,6 @@ const viewState = {
 
 const MAPBOX_TOKEN = 'pk.eyJ1IjoiYmVuamlhbyIsImEiOiJjaWc4NXl0c3MwMGZ4dWhtNXBrc2V6YjhuIn0.8y1VtL2RJZ3wi8Aam6cG8Q';
 const DATA_URL = 'https://raw.githubusercontent.com/benjiao/airports-webmap/master/data/airports.json'
-
-
-const IMPORTANCE_METRIC_OPTIONS = [
-  {
-    'value': 'degree',
-    'text': 'Degree Centrality',
-    'radius_offset': 25000
-  },
-  {
-    'value': 'pagerank',
-    'text': 'Pagerank',
-    'radius_offset': 150000
-  },
-  {
-    'value': 'evcent',
-    'text': 'Eigenvector Centrality',
-    'radius_offset': 30000
-  },
-  {
-    'value': 'beweenness',
-    'text': 'Betweenness',
-    'radius_offset': 30000
-  },
-  {
-    'value': 'connectivity',
-    'text': 'Eigenvector Centrality',
-    'radius_offset': 30000
-  },
-]
 
 
 class App extends Component {
