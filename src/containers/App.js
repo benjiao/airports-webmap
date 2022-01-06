@@ -19,7 +19,7 @@ const viewState = {
   bearing: 20
 };
 
-const MAPBOX_TOKEN = 'pk.eyJ1IjoiYmVuamlhbyIsImEiOiJjaWc4NXl0c3MwMGZ4dWhtNXBrc2V6YjhuIn0.8y1VtL2RJZ3wi8Aam6cG8Q';
+const MAPBOX_TOKEN = 'pk.eyJ1IjoiYmVuamlhbyIsImEiOiJja3V0YWh0ZzAxOWllMnVxdnF3cDllemdrIn0.FwjIjs85YByb-wf44SsqDg';
 const DATA_URL = 'https://raw.githubusercontent.com/benjiao/airports-webmap/master/data/airports.json'
 
 
